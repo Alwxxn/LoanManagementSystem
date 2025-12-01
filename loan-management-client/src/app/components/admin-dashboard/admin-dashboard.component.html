@@ -1,0 +1,163 @@
+<div class="dashboard-container">
+    <header>
+        <h1>Admin Dashboard</h1>
+        <button (click)="logout()" class="logout-btn">Logout</button>
+    </header>
+
+    <nav class="tabs">
+        <button [class.active]="activeTab === 'customers'" (click)="switchTab('customers')">Customers</button>
+        <button [class.active]="activeTab === 'officers'" (click)="switchTab('officers')">Officers</button>
+        <button [class.active]="activeTab === 'loans'" (click)="switchTab('loans')">Loan Requests</button>
+        <button [class.active]="activeTab === 'help'" (click)="switchTab('help')">Help Reports</button>
+        <button [class.active]="activeTab === 'feedback'" (click)="switchTab('feedback')">Feedback</button>
+    </nav>
+
+    <main>
+        <div *ngIf="success" class="alert success">{{ success }}</div>
+        <div *ngIf="error" class="alert error">{{ error }}</div>
+
+        <!-- Customers Tab -->
+        <div *ngIf="activeTab === 'customers'" class="tab-content">
+            <h3>Manage Customers</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let customer of customers">
+                        <td>{{ customer.fullName }}</td>
+                        <td>{{ customer.email }}</td>
+                        <td>
+                            <span class="status-badge" [class]="'status-' + customer.approvalStatus">
+                                {{ ApprovalStatus[customer.approvalStatus] }}
+                            </span>
+                        </td>
+                        <td>
+                            <button *ngIf="customer.approvalStatus === ApprovalStatus.Pending"
+                                (click)="approveUser(customer, true)" class="btn-approve">Approve</button>
+                            <button *ngIf="customer.approvalStatus === ApprovalStatus.Pending"
+                                (click)="approveUser(customer, false)" class="btn-reject">Reject</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Officers Tab -->
+        <div *ngIf="activeTab === 'officers'" class="tab-content">
+            <h3>Manage Officers</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let officer of officers">
+                        <td>{{ officer.fullName }}</td>
+                        <td>{{ officer.email }}</td>
+                        <td>{{ UserRole[officer.role] }}</td>
+                        <td>
+                            <span class="status-badge" [class]="'status-' + officer.approvalStatus">
+                                {{ ApprovalStatus[officer.approvalStatus] }}
+                            </span>
+                        </td>
+                        <td>
+                            <button *ngIf="officer.approvalStatus === ApprovalStatus.Pending"
+                                (click)="approveUser(officer, true)" class="btn-approve">Approve</button>
+                            <button *ngIf="officer.approvalStatus === ApprovalStatus.Pending"
+                                (click)="approveUser(officer, false)" class="btn-reject">Reject</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Loans Tab -->
+        <div *ngIf="activeTab === 'loans'" class="tab-content">
+            <h3>Loan Requests</h3>
+            <div class="loans-grid">
+                <div class="loan-card" *ngFor="let loan of loans">
+                    <div class="loan-header">
+                        <span class="type">{{ loan.loanType }}</span>
+                        <span class="status" [class]="'status-' + loan.status">{{ LoanStatus[loan.status] }}</span>
+                    </div>
+                    <p><strong>Customer:</strong> {{ loan.customer?.fullName }}</p>
+                    <p><strong>Amount:</strong> {{ loan.amount | currency }}</p>
+                    <p><strong>Officer:</strong> {{ loan.assignedOfficer?.fullName || 'Unassigned' }}</p>
+
+                    <button *ngIf="!loan.assignedOfficer" (click)="selectLoanForAssignment(loan)">Assign
+                        Officer</button>
+                </div>
+            </div>
+
+            <!-- Assignment Modal/Overlay -->
+            <div class="modal" *ngIf="selectedLoan">
+                <div class="modal-content">
+                    <h3>Assign Officer to Loan</h3>
+                    <p>Loan ID: {{ selectedLoan.id }}</p>
+                    <form [formGroup]="assignForm" (ngSubmit)="assignOfficer()">
+                        <div class="form-group">
+                            <label>Select Officer</label>
+                            <select formControlName="officerId">
+                                <option *ngFor="let officer of officers" [value]="officer.id">
+                                    {{ officer.fullName }} ({{ UserRole[officer.role] }})
+                                </option>
+                            </select>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="submit" [disabled]="assignForm.invalid">Assign</button>
+                            <button type="button" (click)="selectedLoan = null" class="btn-secondary">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Tab -->
+        <div *ngIf="activeTab === 'help'" class="tab-content">
+            <h3>Help Reports</h3>
+            <div class="reports-list">
+                <div class="report-card" *ngFor="let report of helpReports">
+                    <h4>{{ report.title }}</h4>
+                    <p>{{ report.message }}</p>
+                    <p class="meta">
+                        By: {{ report.createdBy?.fullName }} |
+                        Status: {{ HelpStatus[report.status] }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback Tab -->
+        <div *ngIf="activeTab === 'feedback'" class="tab-content">
+            <h3>Manage Feedback Questions</h3>
+
+            <div class="card">
+                <h4>Add New Question</h4>
+                <form [formGroup]="feedbackForm" (ngSubmit)="addFeedbackQuestion()">
+                    <div class="form-group">
+                        <input type="text" formControlName="question" placeholder="Enter question text">
+                    </div>
+                    <button type="submit" [disabled]="feedbackForm.invalid">Add Question</button>
+                </form>
+            </div>
+
+            <div class="questions-list">
+                <div class="question-item" *ngFor="let q of feedbackQuestions">
+                    <span>{{ q.question }}</span>
+                    <button (click)="deleteQuestion(q.id)" class="btn-danger">Delete</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>

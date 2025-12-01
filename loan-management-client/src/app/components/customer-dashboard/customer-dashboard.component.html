@@ -1,0 +1,109 @@
+<div class="dashboard-container">
+    <header>
+        <h1>Customer Dashboard</h1>
+        <button (click)="logout()" class="logout-btn">Logout</button>
+    </header>
+
+    <nav class="tabs">
+        <button [class.active]="activeTab === 'loans'" (click)="activeTab = 'loans'">My Loans</button>
+        <button [class.active]="activeTab === 'help'" (click)="activeTab = 'help'">Help & Support</button>
+    </nav>
+
+    <main>
+        <div *ngIf="success" class="alert success">{{ success }}</div>
+        <div *ngIf="error" class="alert error">{{ error }}</div>
+
+        <!-- Loans Tab -->
+        <div *ngIf="activeTab === 'loans'" class="tab-content">
+            <div class="card">
+                <h3>Apply for New Loan</h3>
+                <div class="alert warning" *ngIf="!isApproved">
+                    Your account is pending approval. You cannot apply for loans yet.
+                </div>
+                <form [formGroup]="loanForm" (ngSubmit)="applyForLoan()" *ngIf="isApproved">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Amount</label>
+                            <input type="number" formControlName="amount" placeholder="Enter amount">
+                        </div>
+                        <div class="form-group">
+                            <label>Tenure (Months)</label>
+                            <input type="number" formControlName="tenureMonths" placeholder="Enter months">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Loan Type</label>
+                            <select formControlName="loanType">
+                                <option value="">Select Type</option>
+                                <option value="Personal">Personal</option>
+                                <option value="Home">Home</option>
+                                <option value="Education">Education</option>
+                                <option value="Vehicle">Vehicle</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Purpose</label>
+                            <input type="text" formControlName="purpose" placeholder="Enter purpose">
+                        </div>
+                    </div>
+                    <button type="submit" [disabled]="loanForm.invalid || loading">Apply Now</button>
+                </form>
+            </div>
+
+            <div class="loans-list">
+                <h3>My Applications</h3>
+                <div class="loan-card" *ngFor="let loan of loans">
+                    <div class="loan-header">
+                        <span class="type">{{ loan.loanType }} Loan</span>
+                        <span class="status" [class]="'status-' + loan.status">{{ LoanStatus[loan.status] }}</span>
+                    </div>
+                    <div class="loan-details">
+                        <p><strong>Amount:</strong> {{ loan.amount | currency }}</p>
+                        <p><strong>Tenure:</strong> {{ loan.tenureMonths }} months</p>
+                        <p><strong>Applied On:</strong> {{ loan.createdAt | date }}</p>
+                        <p *ngIf="loan.assignedOfficer"><strong>Officer:</strong> {{ loan.assignedOfficer.fullName }}
+                        </p>
+                    </div>
+                    <div class="verifications" *ngIf="loan.backgroundVerification || loan.loanVerification">
+                        <div *ngIf="loan.backgroundVerification">
+                            <small>Background Check: {{ VerificationStatus[loan.backgroundVerification.status]
+                                }}</small>
+                        </div>
+                        <div *ngIf="loan.loanVerification">
+                            <small>Loan Verification: {{ VerificationStatus[loan.loanVerification.status] }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Tab -->
+        <div *ngIf="activeTab === 'help'" class="tab-content">
+            <div class="card">
+                <h3>Submit Help Request</h3>
+                <form [formGroup]="helpForm" (ngSubmit)="createHelpReport()">
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" formControlName="title" placeholder="Issue title">
+                    </div>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea formControlName="message" rows="4" placeholder="Describe your issue"></textarea>
+                    </div>
+                    <button type="submit" [disabled]="helpForm.invalid || loading">Submit Report</button>
+                </form>
+            </div>
+
+            <div class="reports-list">
+                <h3>My Reports</h3>
+                <div class="report-card" *ngFor="let report of helpReports">
+                    <h4>{{ report.title }}</h4>
+                    <p>{{ report.message }}</p>
+                    <span class="status-badge">{{ report.status }}</span>
+                    <small>{{ report.updatedAt || report.createdAt | date }}</small>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>

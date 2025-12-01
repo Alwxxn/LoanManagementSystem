@@ -1,0 +1,47 @@
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>{{ isLogin ? 'Login' : 'Register' }}</h2>
+
+        <form [formGroup]="authForm" (ngSubmit)="onSubmit()">
+            <div class="form-group" *ngIf="!isLogin">
+                <label>Full Name</label>
+                <input type="text" formControlName="fullName" placeholder="Enter full name">
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" formControlName="email" placeholder="Enter email">
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" formControlName="password" placeholder="Enter password">
+            </div>
+
+            <div class="form-group" *ngIf="!isLogin">
+                <label>Phone Number</label>
+                <input type="tel" formControlName="phoneNumber" placeholder="Enter phone number">
+            </div>
+
+            <div class="form-group" *ngIf="!isLogin">
+                <label>Role</label>
+                <select formControlName="role">
+                    <option [value]="2">Customer</option>
+                    <option [value]="3">Loan Officer</option>
+                    <option [value]="4">Field Officer</option>
+                </select>
+            </div>
+
+            <div class="error" *ngIf="error">{{ error }}</div>
+
+            <button type="submit" [disabled]="authForm.invalid || loading">
+                {{ isLogin ? 'Login' : 'Register' }}
+            </button>
+        </form>
+
+        <p class="toggle-text">
+            {{ isLogin ? "Don't have an account?" : "Already have an account?" }}
+            <a (click)="toggleMode()">{{ isLogin ? 'Register' : 'Login' }}</a>
+        </p>
+    </div>
+</div>

@@ -1,0 +1,66 @@
+<div class="dashboard-container">
+    <header>
+        <h1>Officer Dashboard</h1>
+        <button (click)="logout()" class="logout-btn">Logout</button>
+    </header>
+
+    <main>
+        <div *ngIf="success" class="alert success">{{ success }}</div>
+        <div *ngIf="error" class="alert error">{{ error }}</div>
+
+        <div class="content-grid">
+            <!-- Loans List -->
+            <div class="loans-section">
+                <h3>Assigned Loans</h3>
+                <div class="loans-list">
+                    <div class="loan-card" *ngFor="let loan of loans" (click)="selectLoan(loan)"
+                        [class.selected]="selectedLoan?.id === loan.id">
+                        <div class="loan-header">
+                            <span class="type">{{ loan.loanType }}</span>
+                            <span class="status" [class]="'status-' + loan.status">{{ LoanStatus[loan.status] }}</span>
+                        </div>
+                        <p><strong>Customer:</strong> {{ loan.customer?.fullName }}</p>
+                        <p><strong>Amount:</strong> {{ loan.amount | currency }}</p>
+                        <p><strong>Date:</strong> {{ loan.createdAt | date }}</p>
+                    </div>
+                    <p *ngIf="loans.length === 0" class="no-data">No assigned loans found.</p>
+                </div>
+            </div>
+
+            <!-- Verification Form -->
+            <div class="verification-section" *ngIf="selectedLoan">
+                <div class="card sticky">
+                    <h3>Update Verification</h3>
+                    <div class="loan-summary">
+                        <p><strong>Loan ID:</strong> {{ selectedLoan.id }}</p>
+                        <p><strong>Purpose:</strong> {{ selectedLoan.purpose }}</p>
+                    </div>
+
+                    <form [formGroup]="verificationForm" (ngSubmit)="updateVerification()">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select formControlName="status">
+                                <option [value]="VerificationStatus.Pending">Pending</option>
+                                <option [value]="VerificationStatus.InProgress">In Progress</option>
+                                <option [value]="VerificationStatus.Completed">Completed</option>
+                                <option [value]="VerificationStatus.Failed">Failed</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <textarea formControlName="notes" rows="5"
+                                placeholder="Enter verification notes..."></textarea>
+                        </div>
+
+                        <button type="submit" [disabled]="verificationForm.invalid || loading">Update Status</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="verification-section placeholder" *ngIf="!selectedLoan">
+                <p>Select a loan to view details and update verification status.</p>
+            </div>
+        </div>
+    </main>
+</div>
